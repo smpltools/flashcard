@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Card Study App</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        .format-help {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .flashcard-container {
+            display: none;
+            text-align: center;
+        }
+
+        .flashcard {
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            width: 400px;
+            height: 250px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flashcard:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .flashcard.flipped {
+            background: #f0f8ff;
+            border-color: #764ba2;
+        }
+
+        .flashcard-content {
+            padding: 20px;
+            font-size: 18px;
+            line-height: 1.4;
+            color: #333;
+            text-align: center;
+        }
+
+        .card-indicator {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .flipped .card-indicator {
+            background: #764ba2;
+        }
+
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .progress {
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .flip-hint {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .score-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .score-display {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .score-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .score-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .score-correct {
+            color: #28a745;
+        }
+
+        .score-incorrect {
+            color: #dc3545;
+        }
+
+        .score-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .answer-buttons {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .correct-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .incorrect-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+        }
+
+        .shuffle-btn {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+
+        .settings-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .flashcard {
+                width: 300px;
+                height: 200px;
+            }
+            
+            .flashcard-content {
+                font-size: 16px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Flash Card Study App</h1>
+        
+        <div class="input-section">
+            <label for="flashcardText">Paste your study material here:</label>
+            <div class="format-help">
+                <strong>How to format your text:</strong><br>
+                • Each line should have a question, then a question mark (?), then the answer<br>
+                • Example: "What is 2+2? 4"<br>
+                • Or: "Capital of France? Paris"
+            </div>
+            <textarea id="flashcardText" placeholder="What is the capital of France? Paris
+What is 2 + 2? 4
+Who wrote Romeo and Juliet? William Shakespeare"></textarea>
+            <button onclick="createFlashcards()">Create Flash Cards</button>
+        </div>
+    </div>
+
+    <div class="flashcard-container" id="flashcardContainer">
+        <div class="container">
+            <div class="score-section">
+                <h3>📊 Your Score</h3>
+                <div class="score-display">
+                    <div class="score-item">
+                        <div class="score-number score-correct" id="correctScore">0</div>
+                        <div class="score-label">Correct ✅</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-number score-incorrect" id="incorrectScore">0</div>
+                        <div class="score-label">Incorrect ❌</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-number" id="accuracyScore">0%</div>
+                        <div class="score-label">Accuracy</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress" id="progress"></div>
+            
+            <div class="flashcard" id="flashcard" onclick="flipCard()">
+                <div class="card-indicator" id="cardIndicator">Question</div>
+                <div class="flashcard-content" id="cardContent"></div>
+            </div>
+            
+            <div class="flip-hint" id="flipHint">Click the card to see the answer!</div>
+            
+            <div class="answer-buttons" id="answerButtons" style="display: none;">
+                <button class="correct-btn" onclick="markAnswer(true)">✅ I got it right!</button>
+                <button class="incorrect-btn" onclick="markAnswer(false)">❌ I got it wrong</button>
+            </div>
+            
+            <div class="controls">
+                <button onclick="previousCard()" id="prevBtn">⬅️ Previous</button>
+                <button onclick="flipCard()">🔄 Flip Card</button>
+                <button onclick="nextCard()" id="nextBtn">Next ➡️</button>
+            </div>
+            
+            <div class="settings-section">
+                <div class="settings-row">
+                    <button class="shuffle-btn" onclick="shuffleCards()">🔀 Shuffle Cards</button>
+                    <button onclick="resetScore()">🔄 Reset Score</button>
+                </div>
+            </div>
+            
+            <button onclick="goBack()">📝 Add New Material</button>
+        </div>
+    </div>
+
+    <script>
+        let flashcards = [];
+        let currentCard = 0;
+        let isFlipped = false;
+        let correctAnswers = 0;
+        let incorrectAnswers = 0;
+        let cardAnswered = [];  // Track which cards have been answered
+
+        function createFlashcards() {
+            const text = document.getElementById('flashcardText').value.trim();
+            
+            if (!text) {
+                alert('Please paste some text first!');
+                return;
+            }
+
+            // Split text into lines and create flashcards
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            flashcards = [];
+
+            lines.forEach(line => {
+                // Look for question mark to split question and answer
+                const questionMarkIndex = line.indexOf('?');
+                if (questionMarkIndex !== -1) {
+                    const question = line.substring(0, questionMarkIndex + 1).trim();
+                    const answer = line.substring(questionMarkIndex + 1).trim();
+                    
+                    if (question && answer) {
+                        flashcards.push({ question, answer });
+                    }
+                }
+            });
+
+            if (flashcards.length === 0) {
+                alert('No valid flash cards found! Please make sure each line has a question followed by a ? and then the answer.');
+                return;
+            }
+
+            currentCard = 0;
+            isFlipped = false;
+            correctAnswers = 0;
+            incorrectAnswers = 0;
+            cardAnswered = new Array(flashcards.length).fill(false);
+            showFlashcards();
+            updateCard();
+            updateScore();
+        }
+
+        function showFlashcards() {
+            document.querySelector('.input-section').parentElement.style.display = 'none';
+            document.getElementById('flashcardContainer').style.display = 'block';
+        }
+
+        function goBack() {
+            document.querySelector('.input-section').parentElement.style.display = 'block';
+            document.getElementById('flashcardContainer').style.display = 'none';
+        }
+
+        function updateCard() {
+            if (flashcards.length === 0) return;
+
+            const card = flashcards[currentCard];
+            const cardElement = document.getElementById('flashcard');
+            const contentElement = document.getElementById('cardContent');
+            const indicatorElement = document.getElementById('cardIndicator');
+            const progressElement = document.getElementById('progress');
+            const flipHintElement = document.getElementById('flipHint');
+            const answerButtonsElement = document.getElementById('answerButtons');
+
+            if (isFlipped) {
+                contentElement.textContent = card.answer;
+                indicatorElement.textContent = 'Answer';
+                cardElement.classList.add('flipped');
+                flipHintElement.textContent = 'Did you get it right?';
+                
+                // Show answer buttons only if this card hasn't been answered yet
+                if (!cardAnswered[currentCard]) {
+                    answerButtonsElement.style.display = 'flex';
+                } else {
+                    answerButtonsElement.style.display = 'none';
+                }
+            } else {
+                contentElement.textContent = card.question;
+                indicatorElement.textContent = 'Question';
+                cardElement.classList.remove('flipped');
+                flipHintElement.textContent = 'Click the card to see the answer!';
+                answerButtonsElement.style.display = 'none';
+            }
+
+            progressElement.textContent = `Card ${currentCard + 1} of ${flashcards.length}`;
+
+            // Update button states
+            document.getElementById('prevBtn').disabled = currentCard === 0;
+            document.getElementById('nextBtn').disabled = currentCard === flashcards.length - 1;
+        }
+
+        function markAnswer(isCorrect) {
+            if (cardAnswered[currentCard]) return; // Already answered
+            
+            cardAnswered[currentCard] = true;
+            
+            if (isCorrect) {
+                correctAnswers++;
+            } else {
+                incorrectAnswers++;
+            }
+            
+            updateScore();
+            document.getElementById('answerButtons').style.display = 'none';
+            
+            // Auto-advance to next card after a short delay
+            setTimeout(() => {
+                if (currentCard < flashcards.length - 1) {
+                    nextCard();
+                }
+            }, 1000);
+        }
+
+        function updateScore() {
+            document.getElementById('correctScore').textContent = correctAnswers;
+            document.getElementById('incorrectScore').textContent = incorrectAnswers;
+            
+            const total = correctAnswers + incorrectAnswers;
+            const accuracy = total > 0 ? Math.round((correctAnswers / total) * 100) : 0;
+            document.getElementById('accuracyScore').textContent = accuracy + '%';
+        }
+
+        function resetScore() {
+            correctAnswers = 0;
+            incorrectAnswers = 0;
+            cardAnswered = new Array(flashcards.length).fill(false);
+            updateScore();
+            updateCard();
+        }
+
+        function shuffleCards() {
+            // Fisher-Yates shuffle algorithm
+            for (let i = flashcards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [flashcards[i], flashcards[j]] = [flashcards[j], flashcards[i]];
+            }
+            
+            // Reset everything for the shuffled deck
+            currentCard = 0;
+            isFlipped = false;
+            correctAnswers = 0;
+            incorrectAnswers = 0;
+            cardAnswered = new Array(flashcards.length).fill(false);
+            updateCard();
+            updateScore();
+            
+            // Show a brief confirmation
+            const shuffleBtn = event.target;
+            const originalText = shuffleBtn.textContent;
+            shuffleBtn.textContent = '✅ Shuffled!';
+            setTimeout(() => {
+                shuffleBtn.textContent = originalText;
+            }, 1500);
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            updateCard();
+        }
+
+        function nextCard() {
+            if (currentCard < flashcards.length - 1) {
+                currentCard++;
+                isFlipped = false;
+                updateCard();
+            }
+        }
+
+        function previousCard() {
+            if (currentCard > 0) {
+                currentCard--;
+                isFlipped = false;
+                updateCard();
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            if (document.getElementById('flashcardContainer').style.display === 'block') {
+                switch(event.key) {
+                    case 'ArrowLeft':
+                        previousCard();
+                        break;
+                    case 'ArrowRight':
+                        nextCard();
+                        break;
+                    case ' ':
+                    case 'Enter':
+                        event.preventDefault();
+                        flipCard();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
